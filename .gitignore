@@ -1,3 +1,4 @@
+*.tar
 experiment/imagenet.py
 experiment/data
 
