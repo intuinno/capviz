@@ -106,6 +106,36 @@ def _build_top1k_vocab(annotations):
         i += 1
     return top1k
 
+def _build_top1k_noun():
+    tags = pd.read_table('captions.tag', names=['word','pos'])
+    nouns = tags[tags.pos == 'NN']
+    nouns['lemma'] = nouns.apply(lambda x: wn.morphy(x['word']), axis=1)
+    c = Counter(nouns['lemma'].values)
+    #Read imagenet synsets
+    with open('./data/imagenet.synsets','r') as f:
+        synsets = f.readlines()
+    imagenet_synsets = { w.rstrip():True for w in synsets}
+    
+    top1k = []
+    frequentWords = counter.most_common()
+    i = 0
+    top1k_dict = {}
+    
+    while len(top1k) < 1000:
+        w = frequentWords[i][0]
+        if w:
+            j = 0
+            wnid = 'a'
+            while j<len(wn.synsets(w, pos=wn.NOUN)) and wnid not in imagenet_synsets:
+                ss = wn.synset(frequentWords[i][0]+'.n.'+str(j+1).zfill(2))
+                wnid = ss.pos() + str(ss.offset()).zfill(8)
+                j += 1
+            if wnid not in top1k_dict:
+                top1k.append((wnid,w))
+                top1k_dict[wnid] = w
+        i += 1
+    return top1k
+
 def resize_image(image):
     width, height = image.size
     if width > height:
@@ -141,7 +171,7 @@ def main():
                                           max_length=max_length)
         word_to_idx = _build_vocab(annotations=train_dataset, threshold=word_count_threshold)
         save_pickle(word_to_idx, './data/word_to_idx.pkl')
-        top1k = _build_top1k_vocab(train_dataset)
+        top1k = _build_top1k_noun()
         save_pickle(top1k, './data/top1k.pkl')
     else:
         top1k = load_pickle('./data/top1k.pkl')
