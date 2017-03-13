@@ -17,6 +17,8 @@ from core.solver import CaptioningSolver
 from core.model import CaptionGenerator
 from core.utils import *
 from datetime import datetime
+from top1k_noun import _build_top1k_noun
+
 
 def _process_caption_data(caption_file, image_dir, max_length):
     with open(caption_file) as f:
@@ -92,7 +94,7 @@ def _build_top1k_vocab(annotations):
     frequentWords = counter.most_common()
     i = 0
     top1k_dict = {}
-    
+    import ipdb; ipdb.set_trace()   
     while len(top1k) < 1000:
         w = frequentWords[i][0]
         ss = wn.synsets(frequentWords[i][0])
@@ -106,35 +108,7 @@ def _build_top1k_vocab(annotations):
         i += 1
     return top1k
 
-def _build_top1k_noun():
-    tags = pd.read_table('captions.tag', names=['word','pos'])
-    nouns = tags[tags.pos == 'NN']
-    nouns['lemma'] = nouns.apply(lambda x: wn.morphy(x['word']), axis=1)
-    c = Counter(nouns['lemma'].values)
-    #Read imagenet synsets
-    with open('./data/imagenet.synsets','r') as f:
-        synsets = f.readlines()
-    imagenet_synsets = { w.rstrip():True for w in synsets}
-    
-    top1k = []
-    frequentWords = counter.most_common()
-    i = 0
-    top1k_dict = {}
-    
-    while len(top1k) < 1000:
-        w = frequentWords[i][0]
-        if w:
-            j = 0
-            wnid = 'a'
-            while j<len(wn.synsets(w, pos=wn.NOUN)) and wnid not in imagenet_synsets:
-                ss = wn.synset(frequentWords[i][0]+'.n.'+str(j+1).zfill(2))
-                wnid = ss.pos() + str(ss.offset()).zfill(8)
-                j += 1
-            if wnid not in top1k_dict:
-                top1k.append((wnid,w))
-                top1k_dict[wnid] = w
-        i += 1
-    return top1k
+
 
 def resize_image(image):
     width, height = image.size
@@ -165,7 +139,7 @@ def main():
     
     print '1. Building Top 1K dictionary from Train dataset'
     
-    if not os.path.exists('./data/top1k.pkl'):
+    if not  os.path.exists('./data/top1k.pkl'):
         train_dataset = _process_caption_data(caption_file=caption_file,
                                           image_dir=image_dir,
                                           max_length=max_length)

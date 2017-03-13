@@ -15,8 +15,6 @@ def main():
         top1k = pickle.load(f)
     captions = {}
     
-    top1k = top1k[:5]
-    
     for wnid_idx, (wnid,word) in enumerate(top1k):     
         print ' ----- Processing %s, %s, %d / %d' %(wnid, word, wnid_idx, len(top1k)) 
         
