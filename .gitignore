@@ -2,6 +2,9 @@
 *.swp
 experiment/imagenet.py
 experiment/data
+!experiment/data/result/test/
+!experiment/data/result/test/*
+
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
